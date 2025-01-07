@@ -1,0 +1,44 @@
+.js-no-drag {
+  cursor: initial;
+}
+
+body,
+html {
+  min-width: 100vw;
+  min-height: 100vh;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.scrollbar-dark {
+  --scrollbar-color-thumb: rgba(255, 255, 255, 0.3);
+  --scrollbar-color-track: black;
+  --scrollbar-width: thin;
+  --scrollbar-width-legacy: 10px;
+}
+
+/* Modern browsers with `scrollbar-*` support */
+@supports (scrollbar-width: auto) {
+  .scrollbar-dark {
+    scrollbar-color: var(--scrollbar-color-thumb) var(--scrollbar-color-track);
+    scrollbar-width: var(--scrollbar-width);
+  }
+}
+
+/* Legacy browsers with `::-webkit-scrollbar-*` support */
+@supports selector(::-webkit-scrollbar) {
+  .scrollbar-dark::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-color-thumb);
+  }
+
+  .scrollbar-dark::-webkit-scrollbar-track {
+    background: var(--scrollbar-color-track);
+  }
+
+  .scrollbar-dark::-webkit-scrollbar {
+    max-width: var(--scrollbar-width-legacy);
+    max-height: var(--scrollbar-width-legacy);
+  }
+}
