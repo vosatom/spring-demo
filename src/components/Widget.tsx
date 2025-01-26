@@ -21,6 +21,7 @@ import { View } from './View';
 import * as screens from './screens';
 import clsx from 'clsx';
 import { isTouchDevice } from './utils/isTouchDevice';
+import { SharedContextProvider } from './SharedElement';
 
 const useGesture = createUseGesture([dragAction]);
 
@@ -34,9 +35,9 @@ useStackStore.setState({
   ]),
 });
 
-const PERCENT_PREV = '-50%';
-const PERCENT_CURRENT = '0%';
-const PERCENT_NEXT = '100%';
+const PERCENT_PREV = -0.5;
+const PERCENT_CURRENT = 0;
+const PERCENT_NEXT = 1;
 
 const DURATION = 200;
 
@@ -206,15 +207,18 @@ export const Widget = ({ show }: { show: boolean }) => {
         />
       </div>
 
-      {transitions((style, view) => {
-        const viewData = viewsStack.views.get(view.id);
-        if (!viewData) return null;
-        return (
-          <View style={style} title={viewData.title} view={view}>
-            <viewData.component />
-          </View>
-        );
-      })}
+      <SharedContextProvider>
+        {transitions((style, view) => {
+          const viewData = viewsStack.views.get(view.id);
+
+          if (!viewData) return null;
+          return (
+            <View style={style} title={viewData.title} view={view}>
+              <viewData.component />
+            </View>
+          );
+        })}
+      </SharedContextProvider>
     </animated.div>
   );
 };
@@ -233,7 +237,7 @@ interface BackdragData {
 function handleBackdrag(
   state: FullGestureState<'drag'>,
   data: BackdragData,
-  springRef: Controller<Lookup<string>>[],
+  springRef: Controller<Lookup<number>>[],
   handlePop: () => void
 ) {
   const [x] = state.offset;
@@ -243,38 +247,40 @@ function handleBackdrag(
   }
 
   if (data.shouldBackDrag) {
+    const width = data.startRect.width;
+    const prevX = Math.min(Math.max(0, x - state.lastOffset[0]), width);
+    const percentage = prevX / width;
+
     if (state.active) {
       if (springRef.length > 1) {
         data.backDragActive = true;
 
-        const width = data.startRect.width;
-        const prevX = Math.min(Math.max(0, x - state.lastOffset[0]), width);
-
         springRef[springRef.length - 2].start({
-          x: `${((prevX - width) / 2 / width) * 100}%`,
+          x: (percentage - 1) / 2,
           immediate: true,
         });
 
         springRef[springRef.length - 1].start({
-          x: `${(prevX / width) * 100}%`,
+          x: percentage,
           immediate: true,
         });
       }
-    } else {
-      if (state.last && data.backDragActive) {
-        data.backDragActive = false;
-        state.cancel();
+    } else if (state.last && data.backDragActive) {
+      data.backDragActive = false;
+      state.cancel();
 
-        if (state.velocity[0] > 0.5 && state.direction[0] > 0) {
-          handlePop();
-        } else {
-          springRef[springRef.length - 2].start({
-            x: PERCENT_PREV,
-          });
-          springRef[springRef.length - 1].start({
-            x: PERCENT_CURRENT,
-          });
-        }
+      if (
+        percentage > 0.7 ||
+        (state.velocity[0] > 0.5 && state.direction[0] > 0)
+      ) {
+        handlePop();
+      } else {
+        springRef[springRef.length - 2].start({
+          x: PERCENT_PREV,
+        });
+        springRef[springRef.length - 1].start({
+          x: PERCENT_CURRENT,
+        });
       }
     }
 
