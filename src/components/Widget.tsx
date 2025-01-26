@@ -41,9 +41,6 @@ const PERCENT_NEXT = 1;
 
 const DURATION = 200;
 
-const OPACITY_ACTIVE = 1;
-const OPACITY_INACTIVE = 1;
-
 const calculateBounds: (
   offset: [number, number],
   boundElement: RefObject<HTMLElement | null>,
@@ -78,24 +75,17 @@ export const Widget = ({ show }: { show: boolean }) => {
   const transitions = useTransition(viewsStack.stack, {
     from: {
       x: direction ? PERCENT_NEXT : PERCENT_PREV,
-      opacity: OPACITY_INACTIVE,
     },
-    enter: { x: PERCENT_CURRENT, opacity: OPACITY_ACTIVE },
-    update: (_item, index) => {
-      return viewsStack.currentViewIndex === index
-        ? {
-            x: PERCENT_CURRENT,
-            opacity: OPACITY_ACTIVE,
-          }
+    enter: { x: PERCENT_CURRENT },
+    update: (_item, index) =>
+      viewsStack.currentViewIndex === index
+        ? { x: PERCENT_CURRENT }
         : {
             x:
               viewsStack.currentViewIndex > index ? PERCENT_PREV : PERCENT_NEXT,
-            opacity: OPACITY_INACTIVE,
-          };
-    },
+          },
     leave: {
       x: direction ? PERCENT_PREV : PERCENT_NEXT,
-      opacity: OPACITY_INACTIVE,
     },
     initial: null,
     config: { duration: DURATION, easings: easings.easeInOutExpo },

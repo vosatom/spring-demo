@@ -18,7 +18,11 @@ export const View = ({ view, title, style, children }: ViewProps) => {
   return (
     <animated.div
       className="w-full h-full absolute overflow-auto pb-6"
-      style={{ ...style, x: style.x.to((p) => `${p * 100}%`) }}
+      style={{
+        opacity: style.x.to((p) => (p <= -0.5 ? 0 : 1)),
+        x: style.x.to((p) => `${p * 100}%`),
+        boxShadow: style.x.to((p) => (p > 0 ? '0 0 40px black' : 'none')),
+      }}
     >
       <div className="bg-black text-white min-h-full p-4">
         {previousView ? (
